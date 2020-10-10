@@ -10,15 +10,15 @@ namespace Assets.Scripts
     {
         //this game object has the tag of "Player"
 
-
-        public bool isTurn;
+        private Animator anim;
+        private CharacterController controller;
 
         // Start is called before the first frame update
         void Start()
         {
             Init(5, 2);
-            //SetGridSquare(gridPlane.GetSquareAtCoord(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.z)));
-            //isTurn = true;
+            controller = GetComponent<CharacterController>();
+            anim = gameObject.GetComponentInChildren<Animator>();
         }
 
         // Update is called once per frame
@@ -27,7 +27,6 @@ namespace Assets.Scripts
             //Debug.Log("Beginning: " + isTurn);
             if (isTurn)
             {
-
                 if (!moving)
                 {
                     FindSelectableTiles();
@@ -36,11 +35,9 @@ namespace Assets.Scripts
                 else
                 {
                     Move();
-                    Debug.Log("AFter: " + isTurn);
                 }
             }
         }
-
 
         void CheckMouse()
         {
@@ -60,7 +57,6 @@ namespace Assets.Scripts
                         }
                     }
                 }
-                
             }
         }
 
@@ -72,22 +68,30 @@ namespace Assets.Scripts
             }
 
             base.SetGridSquare(square);
-            //currentGridSquare.current = true;
+
             isTurn = false;
         }
 
-        public bool getIsTurn()
-        {
-            return isTurn;
-        }
-
-        override public void FindSelectableTiles()
+        public override void FindSelectableTiles()
         {
             if (currentGridSquare)
             {
                 currentGridSquare.current = true;
             }
+
             base.FindSelectableTiles();
+        }
+
+        public override void Move()
+        {
+            anim.SetInteger("AnimationPar", 1);
+
+            base.Move();
+
+            if (moving == false)
+            {
+                anim.SetInteger("AnimationPar", 0);
+            }
         }
     }
 }
