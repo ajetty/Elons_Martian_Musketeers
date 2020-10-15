@@ -32,7 +32,6 @@ public class GameMaster : MonoBehaviour
 
                 int x = Mathf.RoundToInt(character.transform.position.x);
                 int z = Mathf.RoundToInt(character.transform.position.z);
-                Debug.Log("coordinates: " + x + ", " + z);
                 charMovComp.SetGridSquare(gridPlane.GetSquareAtCoord(x, z));
                 charMovComp.gridPlane = gridPlane;
 
@@ -46,25 +45,32 @@ public class GameMaster : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        /*
-        if (moveButtonPressed && activeCharacter.isTurn)
+        if (activeCharacter != null)
         {
-            if (!activeCharacter.GetComponent<CharacterMovement>().moving)
+            if (moveButtonPressed && activeCharacter.isTurn)
             {
-                Debug.Log("Character is not moving, so we find selectable tiles.");
-                //activeCharacter.GetComponent<CharacterMovement>().moving = true;
-                activeCharacter.GetComponent<CharacterMovement>().FindSelectableTiles();
-                activeCharacter.CheckMouse();
+                if (!activeCharacter.GetComponent<CharacterMovement>().moving)
+                {
+                    //Debug.Log("Character is not moving, so we find selectable tiles.");
+                    //activeCharacter.GetComponent<CharacterMovement>().moving = true;
+                    //activeCharacter.GetComponent<CharacterMovement>().FindSelectableTiles();
+                    //activeCharacter.CheckMouse();
+                }
+                else
+                {
+                    //Debug.Log("Character is moving.");
+                    activeCharacter.GetComponent<CharacterMovement>().Move();
+                    //activeCharacter.setAfterTurn();
+                    //Debug.Log("After: ");
+                }
             }
-            else
+            if (activeCharacter.isTurn && activeCharacter.GetComponent<CharacterMovement>().reachedDestination)
             {
-                Debug.Log("Character is moving.");
-                activeCharacter.GetComponent<CharacterMovement>().Move();
                 activeCharacter.setAfterTurn();
-                Debug.Log("After: ");
+                moveButtonPressed = false;
+                activeCharacter = null;
             }
         }
-        */
     }
 
     public void setActiveCharacter(Player activeCharacter)

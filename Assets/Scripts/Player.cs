@@ -17,15 +17,16 @@ namespace Assets.Scripts
         public bool isTurn;
 
         // Start is called before the first frame update
-        void Start()
-        {
-            //System.Random ran = new System.Random();
-            //this.agility = new CharacterStat(ran.Next(1, 6));
-
-            //Init((int) this.agility.getValue(), 2);
-            //SetGridSquare(gridPlane.GetSquareAtCoord(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.z)));
-            //isTurn = true;
-        }
+        // protected override void Start()
+        // {
+        //     base.Start();
+        //     //System.Random ran = new System.Random();
+        //     //this.agility = new CharacterStat(ran.Next(1, 6));
+        //
+        //     //Init((int) this.agility.getValue(), 2);
+        //     //SetGridSquare(gridPlane.GetSquareAtCoord(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.z)));
+        //     //isTurn = true;
+        // }
 
         // Update is called once per frame
         void Update()
@@ -75,7 +76,7 @@ namespace Assets.Scripts
 
         public override void SetGridSquare(GridSquare square)
         {
-            Debug.Log("SetGridSquare called.");
+            //Debug.Log("SetGridSquare called.");
             if (currentGridSquare != null)
             {
                 currentGridSquare.current = false;
@@ -85,7 +86,7 @@ namespace Assets.Scripts
             //currentGridSquare.current = true;
             //isTurn = false;
 
-            Debug.Log("CurrentGridSquare coords are " + square.transform.position.x + ", " + square.transform.position.z);
+            //Debug.Log("CurrentGridSquare coords are " + square.transform.position.x + ", " + square.transform.position.z);
         }
 
         public bool getIsTurn()
@@ -104,7 +105,7 @@ namespace Assets.Scripts
 
         public void setIsActive(int move)
         {
-            Debug.Log(gameObject.name + " is now active player.");
+            //Debug.Log(gameObject.name + " is now active player.");
             isTurn = true;
             SetMoveRange(move);
             gameMaster.GetComponent<GameMaster>().setActiveCharacter(this);
@@ -114,8 +115,9 @@ namespace Assets.Scripts
         public void setAfterTurn()
         {
             isTurn = false;
-            gameMaster.GetComponent<GameMaster>().setActiveCharacter(null);
-            gameMaster.GetComponent<GameMaster>().moveButtonPressed = false;
+            reachedDestination = false;
+            //gameMaster.GetComponent<GameMaster>().setActiveCharacter(null);
+            //gameMaster.GetComponent<GameMaster>().moveButtonPressed = false;
             charMenu.SetActive(false);
         }
 

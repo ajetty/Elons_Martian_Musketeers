@@ -44,7 +44,7 @@ namespace Assets.Scripts
         }
         */
 
-        void Start()
+        virtual protected void Start()
         {
             this.reachedDestination = false;
             this.speed = 2;
@@ -104,13 +104,11 @@ namespace Assets.Scripts
             path.Clear();
             gridSquare.target = true;
             moving = true;
-            Debug.Log("Moving was set to true.");
 
             GridSquare next = gridSquare;
             while (next != null)
             {
                 path.Push(next);
-                Debug.Log("Path has new square pushed. Coordinates: " + next.xCoordinate + ", " + next.zCoordinate);
                 next = next.parent;
             }
         }
@@ -120,15 +118,15 @@ namespace Assets.Scripts
         {
             if (path.Count > 0)
             {
-                Debug.Log("Path count is greater than 0.");
+                //Debug.Log("Path count is greater than 0.");
                 GridSquare g = path.Peek();
                 //adding Vector3.up * yOffset so that we're not targeting the ground, but above the ground - keeps character from sinking into ground
                 Vector3 target = g.transform.position + Vector3.up * yOffset;
 
                 if (Vector3.Distance(transform.position, target) >= 0.05f)
                 {
-                    Debug.Log("Distance is now being calculated.");
-                    CalculateHeading(target);
+                    //Debug.Log("Distance is now being calculated.");
+                    heading = CalculateHeading(target);
                     SetHorizontalVelocity();
 
                     transform.forward = heading;
@@ -138,13 +136,13 @@ namespace Assets.Scripts
                 {
                     //reached target's center
                     GridSquare destination = path.Pop();
-                    Debug.Log("Path has been popped.");
-                    Debug.Log("Destination coordinates: " + destination.xCoordinate + ", " + destination.zCoordinate);
+                    //Debug.Log("Path has been popped.");
+                    //Debug.Log("Destination coordinates: " + destination.xCoordinate + ", " + destination.zCoordinate);
                     //SetGridSquare(destination);
 
                     if (path.Count == 0)
                     {
-                        Debug.Log("Path count is 0 and now we remove selectable grid squares.");
+                        //Debug.Log("Path count is 0 and now we remove selectable grid squares.");
                         SetGridSquare(destination);
                         RemoveSelectableGridSquares();
                         reachedDestination = true;
@@ -176,11 +174,12 @@ namespace Assets.Scripts
         }
 
         //calculate distance between target and npc/player
-        public void CalculateHeading(Vector3 target)
+        public Vector3 CalculateHeading(Vector3 target)
         {
             //normalized (magnitude of 1) distance between player/npc and target
-            heading = target - transform.position;
-            heading.Normalize();
+            Vector3 headingDirection = target - transform.position;
+            headingDirection.Normalize();
+            return headingDirection;
         }
 
         public void SetHorizontalVelocity()

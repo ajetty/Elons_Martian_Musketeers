@@ -9,8 +9,9 @@ public class PlayerInternMIT : Player
 {
     public CharacterStat agility;
     // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
+        base.Start();
         System.Random ran = new System.Random();
         agility = new CharacterStat(ran.Next(1, 6));
 
@@ -27,30 +28,29 @@ public class PlayerInternMIT : Player
             if (isTurn)
             {
                 GetComponent<CharacterMovement>().SetMoveRange((int)this.agility.getValue());
-                setAfterTurn();
+                //setAfterTurn();
             }
             else
             {
                 setIsActive((int)agility.getValue());
             }
         }
-
         if (gameMaster.GetComponent<GameMaster>().moveButtonPressed && isTurn)
         {
             if (!moving)
             {
-                GetComponent<CharacterMovement>().FindSelectableTiles();
+                FindSelectableTiles();
                 CheckMouse();
             }
             else if (moving && !reachedDestination)
             {
-                Debug.Log("Character is moving.");
-                Debug.Log("Current grid square is " + currentGridSquare.xCoordinate + ", " + currentGridSquare.zCoordinate);
-                Move();
+                //Debug.Log("Character is moving.");
+                //Debug.Log("Current grid square is " + currentGridSquare.xCoordinate + ", " + currentGridSquare.zCoordinate);
+                //Move();
             }
             else if (!moving && reachedDestination)
             {
-                setAfterTurn();
+                //setAfterTurn();
             }
         }
     }

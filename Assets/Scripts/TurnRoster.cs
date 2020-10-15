@@ -20,21 +20,19 @@ namespace Assets.Scripts
         // Update is called once per frame
         void Update()
         {
-            /*
-            if (listOfCharacters[turnIndex].GetComponent<Player>().isTurn == false)
-            {
-                turnIndex = (turnIndex + 1) % listOfCharacters.Count;
-                listOfCharacters[turnIndex].GetComponent<Player>().isTurn = true;
-            }
-            */
+            // if (listOfCharacters[turnIndex].GetComponent<Player>().isTurn == false)
+            // {
+            //     turnIndex = (turnIndex + 1) % listOfCharacters.Count;
+            //     listOfCharacters[turnIndex].GetComponent<Player>().isTurn = true;
+            // }
         }
 
         public void SetTurnList(List<GameObject> listOfCharacters)
         {
-            /*
-            this.listOfCharacters = listOfCharacters;
-            listOfCharacters[1].GetComponent<Player>().isTurn = true;
-            */
+            
+            //this.listOfCharacters = listOfCharacters;
+            //listOfCharacters[1].GetComponent<Player>().isTurn = true;
+            
         }
 
     }
