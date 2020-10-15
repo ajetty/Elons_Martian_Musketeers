@@ -616,7 +616,6 @@ MonoBehaviour:
   speed: 0
   yOffset: 0
   isTurn: 0
-  moving: 0
   gridPlane: {fileID: 0}
 --- !u!1 &8007155960041396194
 GameObject:
