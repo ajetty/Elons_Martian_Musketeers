@@ -11,12 +11,15 @@ public class GameMaster : MonoBehaviour
     public List<GameObject> characterList;
     public GridPlane gridPlane;
     public TurnRoster turnRoster;
+    public Player activeCharacter;
+    public bool moveButtonPressed;
+
     private List<(int, int)> unwalkableSquares = new List<(int, int)>()
     {
-        (1,1), (1,8), (5,5), (7,1), (9,7)
+        (1, 1), (1, 8), (5, 5), (7, 1), (9, 7)
     };
-    
-    
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -25,9 +28,9 @@ public class GameMaster : MonoBehaviour
 
         //find all characters using their tags and put reference of them into list
         characterList = GameObject.FindGameObjectsWithTag("Player").ToList();
-        characterList.AddRange(GameObject.FindGameObjectsWithTag("Enemy").ToList());
+        //characterList.AddRange(GameObject.FindGameObjectsWithTag("Enemy").ToList());
         gridPlane = GameObject.FindObjectOfType<GridPlane>();
-        
+
         if (gridPlane)
         {
             foreach (GameObject character in characterList)
@@ -38,9 +41,8 @@ public class GameMaster : MonoBehaviour
                 int z = Mathf.RoundToInt(character.transform.position.z);
                 charMovComp.SetGridSquare(gridPlane.GetSquareAtCoord(x, z));
                 charMovComp.gridPlane = gridPlane;
-                
-                Debug.Log(character.name + " : " + character.tag + " : " + characterList.IndexOf(character));
 
+                Debug.Log(character.name + " : " + character.tag + " : " + characterList.IndexOf(character));
             }
         }
         else
@@ -54,12 +56,47 @@ public class GameMaster : MonoBehaviour
         {
             gridPlane.GetSquareAtCoord(VARIABLE.Item1, VARIABLE.Item2).walkable = false;
         }
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if (activeCharacter != null)
+        {
+            if (moveButtonPressed && activeCharacter.isTurn)
+            {
+                if (!activeCharacter.GetComponent<CharacterMovement>().moving)
+                {
+                    //Debug.Log("Character is not moving, so we find selectable tiles.");
+                    //activeCharacter.GetComponent<CharacterMovement>().moving = true;
+                    //activeCharacter.GetComponent<CharacterMovement>().FindSelectableTiles();
+                    //activeCharacter.CheckMouse();
+                }
+                else
+                {
+                    //Debug.Log("Character is moving.");
+                    activeCharacter.GetComponent<CharacterMovement>().Move();
+                    //activeCharacter.setAfterTurn();
+                    //Debug.Log("After: ");
+                }
+            }
+
+            if (activeCharacter.isTurn && activeCharacter.GetComponent<CharacterMovement>().reachedDestination)
+            {
+                activeCharacter.setAfterTurn();
+                moveButtonPressed = false;
+                activeCharacter = null;
+            }
+        }
+    }
+
+    public void setActiveCharacter(Player activeCharacter)
+    {
+        this.activeCharacter = activeCharacter;
+    }
+
+    public Player getActiveCharacter()
+    {
+        return this.activeCharacter;
     }
 }

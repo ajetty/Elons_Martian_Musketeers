@@ -15,9 +15,10 @@ namespace Assets.Scripts
         private CharacterController controller;
 
         // Start is called before the first frame update
-        void Start()
+        protected override void Start()
         {
-            Init(5, 2);
+            //Init(5, 2);
+            base.Start();
             controller = GetComponent<CharacterController>();
             anim = gameObject.GetComponentInChildren<Animator>();
         }

@@ -26,11 +26,11 @@ namespace Assets.Scripts
         // Update is called once per frame
         void Update()
         {
-            if (listOfCharacters[turnIndex].GetComponent<CharacterMovement>().isTurn == false)
-            {
-                turnIndex = (turnIndex + 1) % listOfCharacters.Count;
-                listOfCharacters[turnIndex].GetComponent<CharacterMovement>().isTurn = true;
-            }
+            // if (listOfCharacters[turnIndex].GetComponent<CharacterMovement>().isTurn == false)
+            // {
+            //     turnIndex = (turnIndex + 1) % listOfCharacters.Count;
+            //     listOfCharacters[turnIndex].GetComponent<CharacterMovement>().isTurn = true;
+            // }
         }
 
         /*else if (listOfCharacters[turnIndex].tag == "Enemy")
@@ -58,7 +58,7 @@ namespace Assets.Scripts
         public void SetTurnList(List<GameObject> listOfCharacters)
         {
             this.listOfCharacters = listOfCharacters;
-            listOfCharacters[0].GetComponent<CharacterMovement>().isTurn = true;
+            //listOfCharacters[0].GetComponent<CharacterMovement>().isTurn = true;
         }
     }
     

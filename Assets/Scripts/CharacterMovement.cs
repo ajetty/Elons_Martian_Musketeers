@@ -10,9 +10,11 @@ namespace Assets.Scripts
     {
         public int move;
         public int speed;
-        public float yOffset = 0.5f;
+        public float yOffset = 0.0f;
 
         public bool isTurn;
+        
+        public bool reachedDestination;
 
         Vector3 velocity = new Vector3();
 
@@ -31,14 +33,21 @@ namespace Assets.Scripts
         //tile that player/npc is currently on
         protected GridSquare currentGridSquare;
 
-        protected bool moving;
+        public bool moving;
 
         public GridPlane gridPlane;
 
-        protected void Init(int move, int speed)
+        // protected void Init(int move, int speed)
+        // {
+        //     this.move = move;
+        //     this.speed = speed;
+        //     gridSquares = GameObject.FindGameObjectsWithTag("GridSquare");
+        // }
+        
+        protected virtual void Start()
         {
-            this.move = move;
-            this.speed = speed;
+            this.reachedDestination = false;
+            this.speed = 2;
             gridSquares = GameObject.FindGameObjectsWithTag("GridSquare");
         }
 
@@ -123,6 +132,7 @@ namespace Assets.Scripts
                     {
                         SetGridSquare(destination);
                         RemoveSelectableGridSquares();
+                        reachedDestination = true;
                         moving = false;
                     }
                 }
@@ -239,6 +249,11 @@ namespace Assets.Scripts
         {
             return Mathf.Abs(transform.position.x - target.transform.position.x) +
                    Mathf.Abs(transform.position.z - target.transform.position.z);
+        }
+        
+        public void SetMoveRange(int move)
+        {
+            this.move = move;
         }
     }
 }
