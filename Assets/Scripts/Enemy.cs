@@ -14,6 +14,8 @@ namespace Assets.Scripts
         private Animator anim;
         private CharacterController controller;
 
+        private GridSquare moveTargetSquare;
+
         // Start is called before the first frame update
         protected override void Start()
         {
@@ -36,10 +38,10 @@ namespace Assets.Scripts
                     //CheckMouse();
                     //FindSelectableTiles();
                     Transform target = FindNearestTarget("Player");
-                    GridSquare gridSquare = gridPlane.GetSquareAtCoord(Mathf.RoundToInt(target.transform.position.x), Mathf.RoundToInt(target.transform.position.z));
+                    moveTargetSquare = gridPlane.GetSquareAtCoord(Mathf.RoundToInt(target.transform.position.x), Mathf.RoundToInt(target.transform.position.z));
                     // List<GridSquare> test = PathToTarget(gridSquare);
 
-                    MoveToGridSquare(gridSquare);
+                    MoveToGridSquare(moveTargetSquare);
                     
                 }
                 else
@@ -97,10 +99,10 @@ namespace Assets.Scripts
         {
             anim.SetInteger("AnimationPar", 1);
 
-            foreach (var VARIABLE in path)
-            {
-                Debug.Log("STACK: " + VARIABLE.xCoordinate + " " + VARIABLE.zCoordinate);
-            }
+            // foreach (var VARIABLE in path)
+            // {
+            //     Debug.Log("STACK: " + VARIABLE.xCoordinate + " " + VARIABLE.zCoordinate);
+            // }
             
 
             base.Move();
@@ -108,6 +110,8 @@ namespace Assets.Scripts
             if (moving == false)
             {
                 anim.SetInteger("AnimationPar", 0);
+                reachedDestination = false;
+                moveTargetSquare.target = false;
             }
         }
         
@@ -122,10 +126,10 @@ namespace Assets.Scripts
             AList.RemoveAt(0);
             
             
-            foreach (var VARIABLE in AList)
-            {
-                Debug.Log("ALIST: " + VARIABLE.xCoordinate + " " + VARIABLE.zCoordinate);
-            }
+            // foreach (var VARIABLE in AList)
+            // {
+            //     Debug.Log("ALIST: " + VARIABLE.xCoordinate + " " + VARIABLE.zCoordinate);
+            // }
 
             path = new Stack<GridSquare>(AList);
         }

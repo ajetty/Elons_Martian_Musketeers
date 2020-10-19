@@ -32,23 +32,5 @@ public class PlayerElon : Player
                 setIsActive((int)agility.getValue());
             }
         }
-        if (gameMaster.GetComponent<GameMaster>().moveButtonPressed && isTurn)
-        {
-            if (!moving)
-            {
-                FindSelectableTiles();
-                CheckMouse();
-            }
-            else if (moving && !reachedDestination)
-            {
-                //Debug.Log("Character is moving.");
-                //Debug.Log("Current grid square is " + currentGridSquare.xCoordinate + ", " + currentGridSquare.zCoordinate);
-                //Move();
-            }
-            else if (!moving && reachedDestination)
-            {
-                //setAfterTurn();
-            }
-        }
     }
 }

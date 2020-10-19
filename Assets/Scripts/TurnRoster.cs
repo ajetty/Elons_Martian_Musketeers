@@ -13,8 +13,13 @@ namespace Assets.Scripts
 {
     public class TurnRoster : MonoBehaviour
     {
-        public List<GameObject> listOfCharacters;
+        public List<GameObject> listOfPlayers;
+        public List<GameObject> listOfEnemies;
         public int turnIndex;
+        public int playerCount;
+        public int enemyCount;
+        private bool enemyTurn;
+        private bool playerTurn;
 
         //private int count = 0;
 
@@ -26,41 +31,51 @@ namespace Assets.Scripts
         // Update is called once per frame
         void Update()
         {
-            // if (listOfCharacters[turnIndex].GetComponent<CharacterMovement>().isTurn == false)
-            // {
-            //     turnIndex = (turnIndex + 1) % listOfCharacters.Count;
-            //     listOfCharacters[turnIndex].GetComponent<CharacterMovement>().isTurn = true;
-            // }
-        }
+            if (playerTurn)
+            {
+                if (playerCount == 0)
+                {
+                    enemyTurn = true;
+                    playerTurn = false;
+                    //enemy turn initialization
+                    turnIndex = 0;
+                    listOfEnemies[turnIndex].GetComponent<CharacterMovement>().isTurn = true;
+                }
+            }
 
-        /*else if (listOfCharacters[turnIndex].tag == "Enemy")
-        {
-            if (listOfCharacters[turnIndex].GetComponent<Enemy>().isTurn == false)
+            if (enemyTurn)
             {
-                turnIndex = (turnIndex + 1) % listOfCharacters.Count;
-                listOfCharacters[turnIndex].GetComponent<Enemy>().isTurn = true;
-                Debug.Log("Enemy: " + listOfCharacters[turnIndex].ToString() + " turnIndex: " + turnIndex);
+                if (listOfEnemies[turnIndex].GetComponent<CharacterMovement>().isTurn == false)
+                {
+                    turnIndex = turnIndex + 1;
+                    if (turnIndex < enemyCount)
+                    {
+                        listOfEnemies[turnIndex].GetComponent<CharacterMovement>().isTurn = true;
+                    }
+                    else //end of enemy turn
+                    {
+                        enemyTurn = false;
+                        
+                        //reset each player gem back to green
+                        foreach (GameObject player in listOfPlayers)
+                        {
+                            player.GetComponent<Player>().StartNewRound();
+                            playerCount = listOfPlayers.Count;
+                        }
+
+                        playerTurn = true;
+                    }
+                }
             }
-        }*/
-        /*foreach (GameObject item in listOfCharacters)
-        {
-            if (item.tag == "Player")
-            {
-                item.GetComponent<Player>().isTurn = true;
-                Debug.Log("Player: " + item.ToString() + " turnIndex: " + turnIndex);
-            }else if (item.tag == "Enemy")
-            {
-                item.GetComponent<Enemy>().isTurn = true;
-                Debug.Log("Enemy: " + item.ToString() + " turnIndex: " + turnIndex);
-            }
-        }*/
+        }
         
-        public void SetTurnList(List<GameObject> listOfCharacters)
+        public void SetTurnList(List<GameObject> listOfPlayers, List<GameObject> listOfEnemies)
         {
-            this.listOfCharacters = listOfCharacters;
-            //listOfCharacters[0].GetComponent<CharacterMovement>().isTurn = true;
+            playerTurn = true;
+            this.listOfPlayers = listOfPlayers;
+            this.listOfEnemies = listOfEnemies;
+            playerCount = listOfPlayers.Count;
+            enemyCount = listOfEnemies.Count;
         }
     }
-    
 }
-

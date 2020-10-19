@@ -4,11 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using Assets.Scripts;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class GameMaster : MonoBehaviour
 {
     //this game object has the tag of "GameMaster"
-    public List<GameObject> characterList;
+    [FormerlySerializedAs("characterList")] public List<GameObject> playerList;
+    public List<GameObject> enemyList;
     public GridPlane gridPlane;
     public TurnRoster turnRoster;
     public Player activeCharacter;
@@ -27,13 +29,13 @@ public class GameMaster : MonoBehaviour
         turnRoster = GetComponent<TurnRoster>();
 
         //find all characters using their tags and put reference of them into list
-        characterList = GameObject.FindGameObjectsWithTag("Player").ToList();
-        //characterList.AddRange(GameObject.FindGameObjectsWithTag("Enemy").ToList());
+        playerList = GameObject.FindGameObjectsWithTag("Player").ToList();
+        enemyList = GameObject.FindGameObjectsWithTag("Enemy").ToList();
         gridPlane = GameObject.FindObjectOfType<GridPlane>();
 
         if (gridPlane)
         {
-            foreach (GameObject character in characterList)
+            foreach (GameObject character in playerList)
             {
                 CharacterMovement charMovComp = character.GetComponent<CharacterMovement>();
 
@@ -42,7 +44,18 @@ public class GameMaster : MonoBehaviour
                 charMovComp.SetGridSquare(gridPlane.GetSquareAtCoord(x, z));
                 charMovComp.gridPlane = gridPlane;
 
-                Debug.Log(character.name + " : " + character.tag + " : " + characterList.IndexOf(character));
+                Debug.Log(character.name + " : " + character.tag + " : " + playerList.IndexOf(character));
+            }
+            foreach (GameObject character in enemyList)
+            {
+                CharacterMovement charMovComp = character.GetComponent<CharacterMovement>();
+
+                int x = Mathf.RoundToInt(character.transform.position.x);
+                int z = Mathf.RoundToInt(character.transform.position.z);
+                charMovComp.SetGridSquare(gridPlane.GetSquareAtCoord(x, z));
+                charMovComp.gridPlane = gridPlane;
+
+                Debug.Log(character.name + " : " + character.tag + " : " + enemyList.IndexOf(character));
             }
         }
         else
@@ -50,7 +63,7 @@ public class GameMaster : MonoBehaviour
             Debug.Log("ERROR: The grid plane being referred to in game master is null.");
         }
 
-        turnRoster.SetTurnList(characterList);
+        turnRoster.SetTurnList(playerList, enemyList);
 
         foreach (var VARIABLE in unwalkableSquares)
         {
@@ -69,8 +82,8 @@ public class GameMaster : MonoBehaviour
                 {
                     //Debug.Log("Character is not moving, so we find selectable tiles.");
                     //activeCharacter.GetComponent<CharacterMovement>().moving = true;
-                    //activeCharacter.GetComponent<CharacterMovement>().FindSelectableTiles();
-                    //activeCharacter.CheckMouse();
+                    activeCharacter.GetComponent<CharacterMovement>().FindSelectableTiles();
+                    activeCharacter.CheckMouse();
                 }
                 else
                 {
@@ -84,6 +97,7 @@ public class GameMaster : MonoBehaviour
             if (activeCharacter.isTurn && activeCharacter.GetComponent<CharacterMovement>().reachedDestination)
             {
                 activeCharacter.setAfterTurn();
+                turnRoster.playerCount--;
                 moveButtonPressed = false;
                 activeCharacter = null;
             }

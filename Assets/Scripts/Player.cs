@@ -47,7 +47,7 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         // }
     }
 
-    protected void CheckMouse()
+    public void CheckMouse()
     {
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
@@ -120,9 +120,8 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
     {
         isTurn = false;
         reachedDestination = false;
-        //gameMaster.GetComponent<GameMaster>().setActiveCharacter(null);
-        //gameMaster.GetComponent<GameMaster>().moveButtonPressed = false;
         charMenu.SetActive(false);
+        gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material.SetColor("_Color", Color.red);
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -135,5 +134,10 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
     {
         Debug.Log(gameObject.name + " mouse has exit.");
         mouseOver = false;
+    }
+
+    public void StartNewRound()
+    {
+        gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material.SetColor("_Color", new Color(0.07f, 0.59f, 0.03f));
     }
 }
