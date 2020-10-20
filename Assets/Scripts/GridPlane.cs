@@ -10,8 +10,8 @@ namespace Assets.Scripts
     public class GridPlane : MonoBehaviour
     {
         public GridSquare gridSquare;
-        private static int groundWidth = 12;
-        private static int groundHeight = 12;
+        private static int groundWidth = 40;
+        private static int groundHeight = 40;
 
         private GridSquare[,] coordinates = new GridSquare[groundWidth, groundHeight];
 

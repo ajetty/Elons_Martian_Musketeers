@@ -46,7 +46,7 @@ namespace Assets.Scripts
             } else if (selectable)
             {
                 gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.yellow);
-            } else if (APathTest)
+            } else if (walkable == false)
             {
                 gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.magenta);
             }
