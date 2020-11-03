@@ -25,6 +25,7 @@ namespace Assets.Scripts
         
         public int xCoordinate, zCoordinate;
 
+        public bool APathTest;
 
         // Start is called before the first frame update
         void Start()
@@ -45,6 +46,9 @@ namespace Assets.Scripts
             } else if (selectable)
             {
                 gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.yellow);
+            } else if (walkable == false)
+            {
+                gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.magenta);
             }
             else
             {

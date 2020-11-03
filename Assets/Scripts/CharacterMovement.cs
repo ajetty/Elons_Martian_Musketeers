@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Priority_Queue;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -9,8 +10,10 @@ namespace Assets.Scripts
     {
         public int move;
         public int speed;
-        public float yOffset = 0.5f;
+        public float yOffset = 0.0f;
 
+        public bool isTurn;
+        
         public bool reachedDestination;
 
         Vector3 velocity = new Vector3();
@@ -25,7 +28,7 @@ namespace Assets.Scripts
         private GameObject[] gridSquares;
 
         //stores the grid squares that create our path to the target grid square - this is for the actual movement
-        Stack<GridSquare> path = new Stack<GridSquare>();
+        protected Stack<GridSquare> path = new Stack<GridSquare>();
 
         //tile that player/npc is currently on
         protected GridSquare currentGridSquare;
@@ -34,41 +37,32 @@ namespace Assets.Scripts
 
         public GridPlane gridPlane;
 
-        /*
-        public void Init(int move, int speed)
-        {
-            this.move = move;
-            this.speed = speed;
-            gridSquares = GameObject.FindGameObjectsWithTag("GridSquare");
-
-        }
-        */
-
-        virtual protected void Start()
+        // protected void Init(int move, int speed)
+        // {
+        //     this.move = move;
+        //     this.speed = speed;
+        //     gridSquares = GameObject.FindGameObjectsWithTag("GridSquare");
+        // }
+        
+        protected virtual void Start()
         {
             this.reachedDestination = false;
             this.speed = 2;
             gridSquares = GameObject.FindGameObjectsWithTag("GridSquare");
         }
 
-        //breadth first search algorithm for grid square selectable tiles
-        virtual public void FindSelectableTiles()
+        //breadth first search algorithm for grid square selectable grid squares
+        public virtual void FindSelectableTiles()
         {
-            if (currentGridSquare == null)
-            {
-                Debug.Log("Player has current square null.");
-                return;
-            }
+            if (currentGridSquare == null) return;
             Queue<GridSquare> process = new Queue<GridSquare>();
             GridSquare startSquare = currentGridSquare;
             process.Enqueue(startSquare);
             HashSet<GridSquare> squaresVisited = new HashSet<GridSquare>();
-            //currentGridSquare.visited = true;
             squaresVisited.Add(startSquare);
             Dictionary<GridSquare, int> distanceToSquare = new Dictionary<GridSquare, int>();
-            Dictionary<GridSquare, GridSquare> reachedFrom = new Dictionary<GridSquare, GridSquare>();
             distanceToSquare[startSquare] = 0;
-            //current parent is null
+            //current parent is null - we are at the head
 
             while (process.Count > 0)
             {
@@ -99,7 +93,7 @@ namespace Assets.Scripts
             }
         }
 
-        public void MoveToGridSquare(GridSquare gridSquare)
+        virtual public void MoveToGridSquare(GridSquare gridSquare)
         {
             path.Clear();
             gridSquare.target = true;
@@ -114,19 +108,17 @@ namespace Assets.Scripts
         }
 
         //player or npc moves along target path until path count is zero
-        public void Move()
+        virtual public void Move()
         {
             if (path.Count > 0)
             {
-                //Debug.Log("Path count is greater than 0.");
                 GridSquare g = path.Peek();
                 //adding Vector3.up * yOffset so that we're not targeting the ground, but above the ground - keeps character from sinking into ground
                 Vector3 target = g.transform.position + Vector3.up * yOffset;
 
                 if (Vector3.Distance(transform.position, target) >= 0.05f)
                 {
-                    //Debug.Log("Distance is now being calculated.");
-                    heading = CalculateHeading(target);
+                    CalculateHeading(target);
                     SetHorizontalVelocity();
 
                     transform.forward = heading;
@@ -136,13 +128,8 @@ namespace Assets.Scripts
                 {
                     //reached target's center
                     GridSquare destination = path.Pop();
-                    //Debug.Log("Path has been popped.");
-                    //Debug.Log("Destination coordinates: " + destination.xCoordinate + ", " + destination.zCoordinate);
-                    //SetGridSquare(destination);
-
                     if (path.Count == 0)
                     {
-                        //Debug.Log("Path count is 0 and now we remove selectable grid squares.");
                         SetGridSquare(destination);
                         RemoveSelectableGridSquares();
                         reachedDestination = true;
@@ -150,15 +137,10 @@ namespace Assets.Scripts
                     }
                 }
             }
-            else
-            {
-                Debug.Log("Path count is 0.");
-            }
         }
 
-        public virtual void SetGridSquare(GridSquare square)
+        virtual public void SetGridSquare(GridSquare square)
         {
-
             transform.position = square.transform.position + Vector3.up * yOffset;
             currentGridSquare = square;
         }
@@ -174,12 +156,11 @@ namespace Assets.Scripts
         }
 
         //calculate distance between target and npc/player
-        public Vector3 CalculateHeading(Vector3 target)
+        public void CalculateHeading(Vector3 target)
         {
             //normalized (magnitude of 1) distance between player/npc and target
-            Vector3 headingDirection = target - transform.position;
-            headingDirection.Normalize();
-            return headingDirection;
+            heading = target - transform.position;
+            heading.Normalize();
         }
 
         public void SetHorizontalVelocity()
@@ -188,6 +169,88 @@ namespace Assets.Scripts
             velocity = heading * speed;
         }
 
+        //find the nearest target by game object tag using rays
+        public Transform FindNearestTarget(String targetTag)
+        {
+            GameObject[] targets = GameObject.FindGameObjectsWithTag(targetTag);
+
+            float closestDistance = Mathf.Infinity; //start with the largest number since we want the smallest
+
+            Transform nearest = null;
+
+            foreach (GameObject item in targets)
+            {
+                float currentDistance = Vector3.Distance(transform.position, item.transform.position);
+
+                if (currentDistance < closestDistance)
+                {
+                    closestDistance = currentDistance;
+                    nearest = item.transform;
+                }
+            }
+
+            Debug.Log("Calculated Target!: " + nearest.position);
+            return nearest;
+        }
+
+        //find a path to the target using A*
+        public List<GridSquare> PathToTarget(GridSquare target)
+        {
+            Dictionary<GridSquare, GridSquare> cameFrom = new Dictionary<GridSquare, GridSquare>();
+            Dictionary<GridSquare, int> costSoFar = new Dictionary<GridSquare, int>();
+
+            var start = currentGridSquare;
+            var goal = target;
+
+            cameFrom[start] = null;
+            costSoFar[start] = 0;
+
+            var pathTaken = new SimplePriorityQueue<GridSquare>();
+
+            pathTaken.Enqueue(start, 0);
+
+            while (pathTaken.Count > 0)
+            {
+                var current = pathTaken.Dequeue();
+
+                if (current.Equals(goal)) break;
+
+                // This should be for each neighbor not for each gridSquare that exists --James
+                foreach (var next in gridPlane.FindNeighbors(current.xCoordinate, current.zCoordinate))
+                {
+                    int newCost = costSoFar[current] + 1;
+
+                    if (!costSoFar.ContainsKey(next) || newCost < costSoFar[next])
+                    {
+                        costSoFar[next] = newCost;
+                        int heuristic = Mathf.Abs(next.xCoordinate - goal.xCoordinate) +
+                                        Mathf.Abs(next.zCoordinate - goal.zCoordinate);
+                        int priority = newCost + heuristic;
+                        pathTaken.Enqueue(next, priority);
+                        cameFrom[next] = current;
+                    }
+                }
+            }
+
+            GridSquare newCurrent = goal;
+            List<GridSquare> path = new List<GridSquare>();
+            while (newCurrent != start)
+            {
+                path.Add(newCurrent);
+                newCurrent = cameFrom[newCurrent];
+            }
+
+            //path.Reverse();
+
+            return path;
+        }
+
+        private float Heuristic(Transform target)
+        {
+            return Mathf.Abs(transform.position.x - target.transform.position.x) +
+                   Mathf.Abs(transform.position.z - target.transform.position.z);
+        }
+        
         public void SetMoveRange(int move)
         {
             this.move = move;

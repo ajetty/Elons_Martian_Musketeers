@@ -1,19 +1,20 @@
-﻿using System.Collections;
-using System.Resources;
-using System.Runtime.InteropServices;
-using Assets.Scripts;
+﻿using Assets.Scripts;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerElon : Player
 {
-    public CharacterStat agility;
     // Start is called before the first frame update
     protected override void Start()
     {
         base.Start();
         System.Random ran = new System.Random();
-        agility = new CharacterStat(ran.Next(1, 6));
+        agility = new CharacterStat(ran.Next(5, 10));
+        attack = new CharacterStat(ran.Next(5, 10));
+        defense = new CharacterStat(ran.Next(5, 10));
+
+        canMove = true;
+        canAct = true;
 
         Debug.Log("Elon has agility stat " + agility.getValue());
 
@@ -33,24 +34,6 @@ public class PlayerElon : Player
             else
             {
                 setIsActive((int)agility.getValue());
-            }
-        }
-        if (gameMaster.GetComponent<GameMaster>().moveButtonPressed && isTurn)
-        {
-            if (!moving)
-            {
-                FindSelectableTiles();
-                CheckMouse();
-            }
-            else if (moving && !reachedDestination)
-            {
-                //Debug.Log("Character is moving.");
-                //Debug.Log("Current grid square is " + currentGridSquare.xCoordinate + ", " + currentGridSquare.zCoordinate);
-                //Move();
-            }
-            else if (!moving && reachedDestination)
-            {
-                //setAfterTurn();
             }
         }
     }

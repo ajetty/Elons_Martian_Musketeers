@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Assets.Scripts;
+using TMPro;
 
 public class CharacterMenu : MonoBehaviour
 
@@ -10,7 +11,11 @@ public class CharacterMenu : MonoBehaviour
     public GameObject gameMaster;
     public Player activeCharacter;
     public Button moveButton;
+    public Button attackButton;
+    public Button defendButton;
     public Button closeButton;
+
+    public TextMeshProUGUI statDisplay;
 
     // Start is called before the first frame update
     void Start()
@@ -22,13 +27,31 @@ public class CharacterMenu : MonoBehaviour
         
         this.moveButton.onClick.AddListener(() =>
         {
-            gameMaster.GetComponent<GameMaster>().moveButtonPressed = true;
+            if (activeCharacter.canMove)
+            {
+                gameMaster.GetComponent<GameMaster>().moveButtonPressed = true;
+            }
         });
-        
+
+        this.attackButton.onClick.AddListener(() =>
+        {
+            if (activeCharacter.canAct)
+            {
+                gameMaster.GetComponent<GameMaster>().attackButtonPressed = true;
+            }
+        });
+
+        this.defendButton.onClick.AddListener(() =>
+        {
+            if (activeCharacter.canAct)
+            {
+                activeCharacter.defend();
+            }
+        });
 
         this.closeButton.onClick.AddListener(() =>
         {
-            activeCharacter.setAfterTurn();
+            activeCharacter.closeMenu();
         });
     }
 
@@ -38,4 +61,9 @@ public class CharacterMenu : MonoBehaviour
         activeCharacter = gameMaster.GetComponent<GameMaster>().getActiveCharacter();
     }
 
+    public void updateStatDisplay()
+    {
+        statDisplay.text = activeCharacter.statsToString();
+    }
 }
+

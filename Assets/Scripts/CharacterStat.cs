@@ -38,6 +38,46 @@ public class CharacterStat {
         this.statModifiers.Clear();
     }
 
+    public void increment(float valueToAdd)
+    {
+        this.baseValue += valueToAdd;
+    }
+
+    public void decrement(float valueToSubtract)
+    {
+        this.baseValue -= valueToSubtract;
+    }
+
+    public void decrementModDurations()
+    {
+        foreach (StatModifier mod in this.statModifiers)
+        {
+            mod.remainingDuration -= 1;
+        }
+    }
+
+    public void checkModDurations()
+    {
+        List<StatModifier> modsToDelete = new List<StatModifier>();
+
+        foreach (StatModifier mod in this.statModifiers)
+        {
+            if (mod.remainingDuration <= 0)
+            {
+                modsToDelete.Add(mod);
+            }
+        }
+        foreach (StatModifier m in modsToDelete)
+        {
+            this.statModifiers.Remove(m);
+        }
+        
+        if (this.statModifiers.Count == 0)
+        {
+            setModified(false);
+        }
+    }
+
     public float calculateFinalValue() {
         float final = 0;
         foreach (StatModifier mod in this.statModifiers) {
