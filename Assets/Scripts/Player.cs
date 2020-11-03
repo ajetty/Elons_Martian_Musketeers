@@ -1,10 +1,12 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Resources;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Assets.Scripts;
 using UnityEngine.EventSystems;
+using UnityEngine.Serialization;
 
 
 public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandler
@@ -15,11 +17,30 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
 
     public GameObject charMenu;
     public GameObject gameMaster;
+    
+    public LineRenderer lazerFX;
+    public GameObject hitFX;
+    public GameObject missFX;
+    public GameObject DeathFX;
 
+    public AudioClip hitSound;
+    public AudioClip missSound;
+    
+    public AudioSource audioSource;
     //public bool isTurn;
     
     private Animator anim;
     private CharacterController controller;
+    public bool hasTurnAvailable = true;
+    
+    public int healthPoints = 10;
+    
+    public CharacterStat attack;
+    public CharacterStat defense;
+    public CharacterStat agility;
+    public CharacterStat health;
+    
+    private float deathTime = Mathf.Infinity;
 
     // Start is called before the first frame update
     protected override void Start()
@@ -27,27 +48,45 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         base.Start();
         controller = GetComponent<CharacterController>();
         anim = gameObject.GetComponentInChildren<Animator>();
+        
+         System.Random ran = new System.Random();
+         agility = new CharacterStat(ran.Next(5, 10));
+         attack = new CharacterStat(ran.Next(5, 10));
+         defense = new CharacterStat(ran.Next(5, 10));
+         health = new CharacterStat(10);
+        
+        //Debug.Log(name + " has " + health.getValue());
     }
 
     // Update is called once per frame
-    void Update()
+    protected virtual void Update()
     {
-        // //Debug.Log("Beginning: " + isTurn);
-        // if (isTurn)
-        // {
-        //     if (!moving)
-        //     {
-        //         FindSelectableTiles();
-        //         CheckMouse();
-        //     }
-        //     else
-        //     {
-        //         Move();
-        //     }
-        // }
+        if (mouseOver && Mouse.current.leftButton.wasPressedThisFrame)
+        {
+            if (!isTurn && hasTurnAvailable)
+            {
+                //setIsActive(Random.Range(4,6));
+                setIsActive();
+            }
+        }
+        
+        if (health.getValue() <= 0.0f && isDead == false)
+        {
+            Debug.Log(name + " has died!");
+            Death();
+            deathTime = Time.time;
+        }
+
+        if (isDead && Time.time > deathTime + 0.5f)
+        {
+            //Destroy(gameObject);
+            gameObject.SetActive(false);
+            gameMaster.GetComponent<TurnRoster>().playerLiveCount--; 
+            gameMaster.GetComponent<TurnRoster>().playerCount--; 
+        }
     }
 
-    public void CheckMouse()
+    public bool CheckMouse(string state)
     {
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
@@ -55,7 +94,7 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
             RaycastHit hit;
             if (Physics.Raycast(ray, out hit))
             {
-                if (hit.collider.tag == "GridSquare")
+                if (hit.collider.tag == "GridSquare" && state == "moving")
                 {
                     GridSquare gridSquare = hit.collider.GetComponent<GridSquare>();
 
@@ -63,9 +102,21 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
                     {
                         MoveToGridSquare(gridSquare);
                     }
+                }else if (hit.collider.tag == "Enemy" && state == "attack")
+                {
+                    Enemy enemy = hit.collider.GetComponent<Enemy>();
+                    GridSquare gridSquare = gridPlane.GetSquareAtCoord(Mathf.RoundToInt(enemy.transform.position.x), Mathf.RoundToInt(enemy.transform.position.z));
+
+                    if (gridSquare.selectable)
+                    {
+                        Attack(enemy);
+                        return true;
+                    }
                 }
             }
         }
+
+        return false;
     }
 
     public override void SetGridSquare(GridSquare square)
@@ -107,12 +158,13 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         }
     }
     
-    public void setIsActive(int move)
+    public void setIsActive( )
     {
-        //Debug.Log(gameObject.name + " is now active player.");
+        Debug.Log(name + " has " + health.getValue());
         isTurn = true;
-        SetMoveRange(move);
+        SetMoveRange((int)agility.getValue());
         gameMaster.GetComponent<GameMaster>().setActiveCharacter(this);
+        charMenu.GetComponent<CharacterMenu>().statDisplay.text = this.statsToString();
         charMenu.SetActive(true);
     }
     
@@ -122,6 +174,7 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         reachedDestination = false;
         charMenu.SetActive(false);
         gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material.SetColor("_Color", Color.red);
+        hasTurnAvailable = false;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -139,5 +192,69 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
     public void StartNewRound()
     {
         gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material.SetColor("_Color", new Color(0.07f, 0.59f, 0.03f));
+        hasTurnAvailable = true;
+    }
+
+    public virtual void Attack(Enemy enemy)
+    {
+        
+        Debug.Log(enemy.name + " has been selected for attack.");
+
+        System.Random rnd = new System.Random();
+
+        int missFactor = rnd.Next(1, 11);
+
+        if (missFactor < 6)
+        {
+            Instantiate(missFX, transform.position, Quaternion.identity);
+            audioSource.PlayOneShot(missSound);
+        }
+        else
+        {
+            Vector3 spawnPosition = transform.position + Vector3.up * 1.0f;
+            LineRenderer lazerLineRenderer = Instantiate(lazerFX, spawnPosition, Quaternion.identity);
+            lazerLineRenderer.SetPosition(0, enemy.transform.position - transform.position);
+            Vector3 hitPosition = enemy.transform.position + Vector3.up;
+            hitPosition += Vector3.Normalize(Camera.main.transform.position - hitPosition) * 1;
+            Instantiate(hitFX, hitPosition, Quaternion.identity);
+            //enemy.setHP(-1);
+            enemy.health.decrement(attack.getValue());
+            audioSource.PlayOneShot(hitSound);
+        }
+    }
+    
+    private void Death()
+    {
+        Debug.Log(name + " is dead.");
+        anim.SetBool("Dieing", true);
+        Instantiate(DeathFX, transform.position, Quaternion.identity);
+        isDead = true;
+    }
+    
+    public string statsToString()
+    {
+        string r = "Health // " + health.getValue();
+        r += "\nAttack // " + attack.getValue();
+        r += "\nDefense // " + defense.getValue();
+        r += "\nAgility // " + agility.getValue();
+        return r;
+    }
+    
+    public void defend()
+    {
+        defense.addModifier(new StatModifier(1.50f, false, 2));
+        defense.setModified(true);
+        hasTurnAvailable = false;
+        charMenu.GetComponent<CharacterMenu>().updateStatDisplay();
+    }
+
+    public virtual int getHP()
+    {
+        return -999999;
+    }
+
+    public virtual void setHP(int points)
+    {
+        
     }
 }

@@ -285,11 +285,15 @@ MonoBehaviour:
   yOffset: 0
   isTurn: 0
   reachedDestination: 0
+  isDead: 0
   moving: 0
   gridPlane: {fileID: 0}
   mouseOver: 0
   charMenu: {fileID: 0}
   gameMaster: {fileID: 0}
+  lazerFX: {fileID: 1076627915689423840, guid: 58813f79e745db18cb640827a0853079, type: 3}
+  hitFX: {fileID: 100004, guid: f95ff734540a0d749be6571b6cb5b37f, type: 3}
+  healthPoints: 10
 --- !u!1 &8180962254334157639
 GameObject:
   m_ObjectHideFlags: 0

@@ -16,6 +16,8 @@ namespace Assets.Scripts
         
         public bool reachedDestination;
 
+        public bool isDead;
+
         Vector3 velocity = new Vector3();
 
         //keeps track of distance between player/npc and target grid square (square we want to move to)
@@ -170,13 +172,13 @@ namespace Assets.Scripts
         }
 
         //find the nearest target by game object tag using rays
-        public Transform FindNearestTarget(String targetTag)
+        public Player FindNearestTarget(String targetTag)
         {
             GameObject[] targets = GameObject.FindGameObjectsWithTag(targetTag);
 
             float closestDistance = Mathf.Infinity; //start with the largest number since we want the smallest
 
-            Transform nearest = null;
+            GameObject nearest = null;
 
             foreach (GameObject item in targets)
             {
@@ -185,12 +187,12 @@ namespace Assets.Scripts
                 if (currentDistance < closestDistance)
                 {
                     closestDistance = currentDistance;
-                    nearest = item.transform;
+                    nearest = item;
                 }
             }
 
-            Debug.Log("Calculated Target!: " + nearest.position);
-            return nearest;
+            //Debug.Log("Calculated Target!: " + nearest.transform.position);
+            return nearest.GetComponent<Player>();
         }
 
         //find a path to the target using A*

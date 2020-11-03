@@ -4,33 +4,28 @@ using UnityEngine.InputSystem;
 
 public class PlayerElon : Player
 {
-    public CharacterStat agility;
+    //public CharacterStat agility;
+    
+    
+    
     // Start is called before the first frame update
     protected override void Start()
     {
         base.Start();
-        System.Random ran = new System.Random();
-        agility = new CharacterStat(ran.Next(1, 6));
-
-        Debug.Log("Elon has agility stat " + agility.getValue());
-
-        //Init((int)this.agility.getValue(), 2);
+        // System.Random ran = new System.Random();
+        // agility = new CharacterStat(ran.Next(5, 10));
+        // attack = new CharacterStat(ran.Next(5, 10));
+        // defense = new CharacterStat(ran.Next(5, 10));
+        // health = new CharacterStat(1);
     }
 
-    // Update is called once per frame
-    void Update()
+    public override int getHP()
     {
-        if (mouseOver && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            if (isTurn)
-            {
-                GetComponent<CharacterMovement>().SetMoveRange((int)this.agility.getValue());
-                //setAfterTurn();
-            }
-            else
-            {
-                setIsActive((int)agility.getValue());
-            }
-        }
+        return healthPoints;
+    }
+
+    public override void setHP(int points)
+    {
+        this.healthPoints += points;
     }
 }
