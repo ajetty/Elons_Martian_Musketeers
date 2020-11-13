@@ -38,13 +38,6 @@ namespace Assets.Scripts
         public bool moving;
 
         public GridPlane gridPlane;
-
-        // protected void Init(int move, int speed)
-        // {
-        //     this.move = move;
-        //     this.speed = speed;
-        //     gridSquares = GameObject.FindGameObjectsWithTag("GridSquare");
-        // }
         
         protected virtual void Start()
         {
@@ -54,7 +47,7 @@ namespace Assets.Scripts
         }
 
         //breadth first search algorithm for grid square selectable grid squares
-        public virtual void FindSelectableTiles()
+        public virtual void FindSelectableTiles(bool attackMode)
         {
             if (currentGridSquare == null) return;
             Queue<GridSquare> process = new Queue<GridSquare>();
@@ -81,7 +74,7 @@ namespace Assets.Scripts
                     int z = pathCurrentSquare.zCoordinate;
                     foreach (GridSquare square in gridPlane.FindNeighbors(x, z))
                     {
-                        if (!squaresVisited.Contains(square))
+                        if ((square.occupant == null || attackMode) && !squaresVisited.Contains(square))
                         {
                             square.parent = pathCurrentSquare;
                             //square.visited = true;
@@ -144,7 +137,12 @@ namespace Assets.Scripts
         virtual public void SetGridSquare(GridSquare square)
         {
             transform.position = square.transform.position + Vector3.up * yOffset;
+            if (currentGridSquare)
+            {
+                currentGridSquare.occupant = null;
+            }
             currentGridSquare = square;
+            currentGridSquare.occupant = this;
         }
 
         public void RemoveSelectableGridSquares()
@@ -155,6 +153,7 @@ namespace Assets.Scripts
             }
 
             selectableGridSquares.Clear();
+            currentGridSquare.current = false;
         }
 
         //calculate distance between target and npc/player

@@ -27,6 +27,8 @@ namespace Assets.Scripts
 
         public bool APathTest;
 
+        public CharacterMovement occupant = null;
+
         // Start is called before the first frame update
         void Start()
         {
@@ -37,7 +39,7 @@ namespace Assets.Scripts
         void Update()
         {
             //https://docs.unity3d.com/ScriptReference/Material.SetColor.html
-            if (current)
+            if (current && !walkable)
             {
                 gameObject.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.red);
             } else if (target)

@@ -96,5 +96,7 @@ namespace Assets.Scripts
             enemyCount = listOfEnemies.Count;
             enemyLiveCount = enemyCount;
         }
+        
+        
     }
 }

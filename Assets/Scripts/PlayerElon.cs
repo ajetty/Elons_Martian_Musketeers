@@ -19,13 +19,4 @@ public class PlayerElon : Player
         // health = new CharacterStat(1);
     }
 
-    public override int getHP()
-    {
-        return healthPoints;
-    }
-
-    public override void setHP(int points)
-    {
-        this.healthPoints += points;
-    }
 }

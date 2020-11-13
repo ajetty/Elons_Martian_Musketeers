@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
 
-public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandler
+public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     //this game object has the tag of "Player"
 
@@ -17,7 +17,7 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
 
     public GameObject charMenu;
     public GameObject gameMaster;
-    
+
     public LineRenderer lazerFX;
     public GameObject hitFX;
     public GameObject missFX;
@@ -25,50 +25,48 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
 
     public AudioClip hitSound;
     public AudioClip missSound;
-    
+
     public AudioSource audioSource;
     //public bool isTurn;
-    
+
     private Animator anim;
     private CharacterController controller;
     public bool hasTurnAvailable = true;
-    
-    public int healthPoints = 10;
-    
+
     public CharacterStat attack;
     public CharacterStat defense;
     public CharacterStat agility;
     public CharacterStat health;
-    
+
     private float deathTime = Mathf.Infinity;
 
-    // Start is called before the first frame update
+
+    public Shader originalShaderPlayer;
+    public Shader originalShaderDiamond;
+
+    public bool isClickable;
+
     protected override void Start()
     {
         base.Start();
         controller = GetComponent<CharacterController>();
         anim = gameObject.GetComponentInChildren<Animator>();
-        
-         System.Random ran = new System.Random();
-         agility = new CharacterStat(ran.Next(5, 10));
-         attack = new CharacterStat(ran.Next(5, 10));
-         defense = new CharacterStat(ran.Next(5, 10));
-         health = new CharacterStat(10);
-        
+
+        //System.Random ran = new System.Random();
+        agility = new CharacterStat(UnityEngine.Random.Range(5, 10));
+        attack = new CharacterStat(UnityEngine.Random.Range(5, 10));
+        defense = new CharacterStat(UnityEngine.Random.Range(5, 10));
+        health = new CharacterStat(10);
+
+        isClickable = true;
+
         //Debug.Log(name + " has " + health.getValue());
     }
 
     // Update is called once per frame
     protected virtual void Update()
     {
-        if (mouseOver && Mouse.current.leftButton.wasPressedThisFrame)
-        {
-            if (!isTurn && hasTurnAvailable)
-            {
-                //setIsActive(Random.Range(4,6));
-                setIsActive();
-            }
-        }
+        
         
         if (health.getValue() <= 0.0f && isDead == false)
         {
@@ -81,8 +79,8 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         {
             //Destroy(gameObject);
             gameObject.SetActive(false);
-            gameMaster.GetComponent<TurnRoster>().playerLiveCount--; 
-            gameMaster.GetComponent<TurnRoster>().playerCount--; 
+            gameMaster.GetComponent<TurnRoster>().playerLiveCount--;
+            gameMaster.GetComponent<TurnRoster>().playerCount--;
         }
     }
 
@@ -102,10 +100,12 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
                     {
                         MoveToGridSquare(gridSquare);
                     }
-                }else if (hit.collider.tag == "Enemy" && state == "attack")
+                }
+                else if (hit.collider.tag == "Enemy" && state == "attack")
                 {
                     Enemy enemy = hit.collider.GetComponent<Enemy>();
-                    GridSquare gridSquare = gridPlane.GetSquareAtCoord(Mathf.RoundToInt(enemy.transform.position.x), Mathf.RoundToInt(enemy.transform.position.z));
+                    GridSquare gridSquare = gridPlane.GetSquareAtCoord(Mathf.RoundToInt(enemy.transform.position.x),
+                        Mathf.RoundToInt(enemy.transform.position.z));
 
                     if (gridSquare.selectable)
                     {
@@ -131,16 +131,16 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         //isTurn = false;
     }
 
-    public override void FindSelectableTiles()
+    public override void FindSelectableTiles(bool attackMode)
     {
         if (currentGridSquare)
         {
             currentGridSquare.current = true;
         }
 
-        base.FindSelectableTiles();
+        base.FindSelectableTiles(attackMode);
     }
-    
+
     public bool getIsTurn()
     {
         return isTurn;
@@ -148,6 +148,7 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
 
     public override void Move()
     {
+        
         anim.SetInteger("AnimationPar", 1);
 
         base.Move();
@@ -157,17 +158,16 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
             anim.SetInteger("AnimationPar", 0);
         }
     }
-    
-    public void setIsActive( )
+
+    public void setIsActive()
     {
-        Debug.Log(name + " has " + health.getValue());
-        isTurn = true;
-        SetMoveRange((int)agility.getValue());
+        //isTurn = true;
+        SetMoveRange((int) agility.getValue());
         gameMaster.GetComponent<GameMaster>().setActiveCharacter(this);
         charMenu.GetComponent<CharacterMenu>().statDisplay.text = this.statsToString();
         charMenu.SetActive(true);
     }
-    
+
     public void setAfterTurn()
     {
         isTurn = false;
@@ -181,30 +181,43 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
     {
         Debug.Log(gameObject.name + " mouse has entered.");
         mouseOver = true;
+        originalShaderPlayer = gameObject.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().material.shader;
+        originalShaderDiamond = gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material.shader;
+        gameObject.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().materials[0].shader =
+            Shader.Find("Legacy Shaders/Self-Illumin/Diffuse");
+        gameObject.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().materials[1].shader =
+            Shader.Find("Legacy Shaders/Self-Illumin/Diffuse");
+        gameObject.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().materials[2].shader =
+            Shader.Find("Legacy Shaders/Self-Illumin/Diffuse");
+        gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material.shader =
+            Shader.Find("Legacy Shaders/Self-Illumin/Diffuse");
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         Debug.Log(gameObject.name + " mouse has exit.");
         mouseOver = false;
+        gameObject.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().materials[0].shader = originalShaderPlayer;
+        gameObject.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().materials[1].shader = originalShaderPlayer;
+        gameObject.transform.GetChild(1).GetComponent<SkinnedMeshRenderer>().materials[2].shader = originalShaderPlayer;
+        gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material.shader = originalShaderDiamond;
     }
 
     public void StartNewRound()
     {
-        gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material.SetColor("_Color", new Color(0.07f, 0.59f, 0.03f));
+        gameObject.transform.GetChild(2).GetComponent<MeshRenderer>().material
+            .SetColor("_Color", new Color(0.07f, 0.59f, 0.03f));
         hasTurnAvailable = true;
     }
 
     public virtual void Attack(Enemy enemy)
     {
-        
         Debug.Log(enemy.name + " has been selected for attack.");
 
-        System.Random rnd = new System.Random();
 
-        int missFactor = rnd.Next(1, 11);
+        int missFactor = UnityEngine.Random.Range(1, 11);
 
-        if (missFactor < 6)
+        if (missFactor < 0)
         {
             Instantiate(missFX, transform.position, Quaternion.identity);
             audioSource.PlayOneShot(missSound);
@@ -217,20 +230,20 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
             Vector3 hitPosition = enemy.transform.position + Vector3.up;
             hitPosition += Vector3.Normalize(Camera.main.transform.position - hitPosition) * 1;
             Instantiate(hitFX, hitPosition, Quaternion.identity);
-            //enemy.setHP(-1);
             enemy.health.decrement(attack.getValue());
             audioSource.PlayOneShot(hitSound);
         }
     }
-    
+
     private void Death()
     {
         Debug.Log(name + " is dead.");
         anim.SetBool("Dieing", true);
         Instantiate(DeathFX, transform.position, Quaternion.identity);
         isDead = true;
+        currentGridSquare.occupant = null;
     }
-    
+
     public string statsToString()
     {
         string r = "Health // " + health.getValue();
@@ -239,7 +252,7 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         r += "\nAgility // " + agility.getValue();
         return r;
     }
-    
+
     public void defend()
     {
         defense.addModifier(new StatModifier(1.50f, false, 2));
@@ -248,13 +261,11 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         charMenu.GetComponent<CharacterMenu>().updateStatDisplay();
     }
 
-    public virtual int getHP()
+    public void OnPointerClick(PointerEventData eventData)
     {
-        return -999999;
-    }
-
-    public virtual void setHP(int points)
-    {
-        
+        if (hasTurnAvailable && isClickable)
+        {
+            setIsActive();
+        }
     }
 }

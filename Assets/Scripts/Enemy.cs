@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Resources;
@@ -11,7 +12,7 @@ using UnityEngine.EventSystems;
 
 namespace Assets.Scripts
 {
-    public class Enemy : CharacterMovement, IPointerClickHandler
+    public class Enemy : CharacterMovement, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         //this game object has the tag of "Enemy"
 
@@ -25,26 +26,29 @@ namespace Assets.Scripts
         public GameObject DeathFX;
 
         private float deathTime = Mathf.Infinity;
-        
+        private float attackTime = Mathf.Infinity;
+
         public GameObject gameMaster;
-        
+
         public GameObject hitFX;
         public GameObject missFX;
 
         public AudioClip hitSound;
         public AudioClip missSound;
-    
+
         public AudioSource audioSource;
-        
+
         public CameraSystem cameraSystem;
-        
+
         public Canvas enemyMenu;
-        
+
         public string eName;
         public CharacterStat health;
         public CharacterStat defense;
         public CharacterStat agility;
         public CharacterStat attack;
+
+        public Shader originalShader;
 
         // Start is called before the first frame update
         protected override void Start()
@@ -56,20 +60,15 @@ namespace Assets.Scripts
             anim = gameObject.GetComponentInChildren<Animator>();
             health = new CharacterStat(1);
             defense = new CharacterStat(0);
-            agility = new CharacterStat(ran.Next(5, 10));
-            attack = new CharacterStat(ran.Next(5, 10));
-            
-            if (this.gameObject.name == "Enemy")
-            {
-                eName = "Enemy 1";
-            }
-            else
-            {
-                eName = "Enemy 2";
-            }
-            
+            agility = new CharacterStat(UnityEngine.Random.Range(5, 11));
+            attack = new CharacterStat(UnityEngine.Random.Range(5, 10));
+
+            eName = name;
+
             hideEnemyStatDisplay();
-            
+
+            originalShader = gameObject.transform.GetChild(3).GetChild(0).GetComponent<SkinnedMeshRenderer>().material.shader;
+            attackTime = 0;
         }
 
         // Update is called once per frame
@@ -79,12 +78,12 @@ namespace Assets.Scripts
             if (isTurn)
             {
                 cameraSystem.SetCameraOrigin(gameObject.transform);
-                
+
                 Player target = FindNearestTarget("Player");
                 moveTargetSquare = gridPlane.GetSquareAtCoord(Mathf.RoundToInt(target.transform.position.x),
                     Mathf.RoundToInt(target.transform.position.z));
-                
-                
+
+
                 if (!moving)
                 {
                     if (Vector3.Distance(transform.position, target.transform.position) > agility.getValue())
@@ -93,15 +92,16 @@ namespace Assets.Scripts
                     }
                     else
                     {
+                        attackTime += Time.deltaTime;
                         Attack(target);
                     }
+
                 }
 
                 if (moving)
                 {
                     Move();
                 }
-
             }
 
             if (health.getValue() <= 0.0f && isDead == false)
@@ -114,43 +114,61 @@ namespace Assets.Scripts
             {
                 //Destroy(gameObject);
                 gameObject.SetActive(false);
-                gameMaster.GetComponent<TurnRoster>().enemyLiveCount--; 
+                hideEnemyStatDisplay();
+                gameMaster.GetComponent<TurnRoster>().enemyLiveCount--;
             }
         }
 
         private void Attack(Player target)
         {
-            
+           
             //Debug.Log("CAMERA SYSTEM: " + cameraSystem.transform.position);
-            
-            Debug.Log(target.name + " has been selected for attack.");
-        
-            System.Random rnd = new System.Random();
-
-            int missFactor = rnd.Next(1, 11);
-
-            if (missFactor < 3)
+            if (attackTime > 0.05f)
             {
-                Instantiate(missFX, transform.position, Quaternion.identity);
-                audioSource.PlayOneShot(missSound);
+                anim.SetInteger("AnimationPar", 2);
+
+                Debug.Log("AnimationPar: " + anim.GetInteger("AnimationPar"));
+
+                Debug.Log(target.name + " has been selected for attack.");
+
+                int missFactor = UnityEngine.Random.Range(1, 11);
+
+                if (missFactor < 3)
+                {
+                    Instantiate(missFX, transform.position, Quaternion.identity);
+                    audioSource.PlayOneShot(missSound);
+                }
+                else
+                {
+                    Vector3 hitPosition = target.transform.position + Vector3.up;
+                    hitPosition += Vector3.Normalize(Camera.main.transform.position - hitPosition) * 1;
+                    Instantiate(hitFX, hitPosition, Quaternion.identity);
+                    //Instantiate(hitFX, target.transform.position, Quaternion.identity);
+                    target.health.decrement(attack.getValue());
+                    Debug.Log(target.name + " has taken " + attack.getValue() + " damage.");
+                    //target.setHP(-10);
+                    audioSource.PlayOneShot(hitSound);
+                }
+
+
+                
             }
-            else
+
+            if (attackTime > 0.08f)
             {
-                Instantiate(hitFX, target.transform.position, Quaternion.identity);
-                target.health.decrement(attack.getValue());
-                Debug.Log(target.name + " has taken " + attack.getValue() + " damage.");
-                //target.setHP(-10);
-                audioSource.PlayOneShot(hitSound);
+                anim.SetInteger("AnimationPar", 0);
+                attackTime = 0;
+                isTurn = false;
             }
-            isTurn = false;
+
         }
 
         private void Death()
         {
-            Debug.Log(name + " is dead.");
             anim.SetBool("Dieing", true);
             Instantiate(DeathFX, transform.position, Quaternion.identity);
             isDead = true;
+            currentGridSquare.occupant = null;
         }
 
 
@@ -192,19 +210,21 @@ namespace Assets.Scripts
             isTurn = false;
         }
 
-        public override void FindSelectableTiles()
-        {
-            if (currentGridSquare)
-            {
-                currentGridSquare.current = true;
-            }
-
-            base.FindSelectableTiles();
-        }
+        // public override void FindSelectableTiles()
+        // {
+        //     if (currentGridSquare)
+        //     {
+        //         currentGridSquare.current = true;
+        //     }
+        //
+        //     base.FindSelectableTiles();
+        // }
 
         public override void Move()
         {
             anim.SetInteger("AnimationPar", 1);
+            
+
 
             base.Move();
 
@@ -213,6 +233,7 @@ namespace Assets.Scripts
                 anim.SetInteger("AnimationPar", 0);
                 reachedDestination = false;
                 moveTargetSquare.target = false;
+
             }
         }
 
@@ -225,48 +246,48 @@ namespace Assets.Scripts
             List<GridSquare> AList = PathToTarget(gridSquare);
 
             AList.RemoveAt(0);
-            //int newLength = Mathf.Min(AList.Count, move);
-            int newLength = (int)Mathf.Min(AList.Count, agility.getValue());
+            int newLength = (int) Mathf.Min(AList.Count, agility.getValue());
             AList = AList.GetRange(AList.Count - newLength, newLength);
 
             path = new Stack<GridSquare>(AList);
-            
-
         }
 
-        public int getHP()
-        {
-            return healthPoints;
-        }
-
-        public void setHP(int points)
-        {
-            healthPoints += points;
-        }
-        
         public void updateEnemyStatDisplay()
         {
             TextMeshProUGUI statDisplay = enemyMenu.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
             statDisplay.text = statsToString();
         }
-        
+
         public void hideEnemyStatDisplay()
         {
             enemyMenu.gameObject.SetActive(false);
         }
-        
+
         public void showEnemyStatDisplay()
         {
             updateEnemyStatDisplay();
             enemyMenu.gameObject.SetActive(true);
         }
-        
+
         public string statsToString()
         {
             string r = eName + "\n\n";
             r += "HP  // " + health.getValue();
             r += "\nDEF // " + defense.getValue();
             return r;
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            gameObject.transform.GetChild(3).GetChild(0).GetComponent<SkinnedMeshRenderer>().material.shader =
+                Shader.Find("Legacy Shaders/Self-Illumin/Diffuse");
+            
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            gameObject.transform.GetChild(3).GetChild(0).GetComponent<SkinnedMeshRenderer>().material.shader =
+                originalShader;
         }
     }
 }

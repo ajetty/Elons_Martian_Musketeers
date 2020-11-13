@@ -6,6 +6,7 @@ using Assets.Scripts;
 using UnityEngine;
 using UnityEngine.Serialization;
 using TMPro;
+using UnityEngine.UI;
 
 public class GameMaster : MonoBehaviour
 {
@@ -115,31 +116,35 @@ public class GameMaster : MonoBehaviour
             {
                 cameraSystem.SetCameraOrigin(activeCharacter.transform);
 
-                if (moveButtonPressed && activeCharacter.isTurn)
+                if (moveButtonPressed)
                 {
+                    activeCharacter.isTurn = true;
+                    makeUnclickable(activeCharacter);
+                    
                     if (!activeCharacter.GetComponent<CharacterMovement>().moving)
                     {
-                        //Debug.Log("Character is not moving, so we find selectable tiles.");
-                        //activeCharacter.GetComponent<CharacterMovement>().moving = true;
-                        activeCharacter.GetComponent<CharacterMovement>().FindSelectableTiles();
+                        activeCharacter.RemoveSelectableGridSquares();
+                        activeCharacter.GetComponent<CharacterMovement>().FindSelectableTiles(false);
                         activeCharacter.CheckMouse("moving");
                     }
                     else
                     {
-                        //Debug.Log("Character is moving.");
                         activeCharacter.GetComponent<CharacterMovement>().Move();
-                        //activeCharacter.setAfterTurn();
-                        //Debug.Log("After: ");
                     }
                 }
                 
                 
-                else if (attackButtonPressed && activeCharacter.isTurn)
+                else if (attackButtonPressed)
                 {
-                    activeCharacter.GetComponent<CharacterMovement>().FindSelectableTiles();
+                    
+                    activeCharacter.isTurn = true;
+                    makeUnclickable(activeCharacter);
+                    activeCharacter.RemoveSelectableGridSquares();
+                    activeCharacter.FindSelectableTiles(true);
                     bool attacked = activeCharacter.CheckMouse("attack");
                     if (attacked)
                     {
+                        makeUnclickable(activeCharacter);
                         endTurn();
                     }
                 }
@@ -166,6 +171,7 @@ public class GameMaster : MonoBehaviour
         attackButtonPressed = false;
         activeCharacter.RemoveSelectableGridSquares();
         activeCharacter = null;
+        makeClickable();
     }
 
     public void setActiveCharacter(Player activeCharacter)
@@ -187,4 +193,24 @@ public class GameMaster : MonoBehaviour
     {
         loseText.SetActive(true);
     }
+
+    private void makeUnclickable(Player activeCharacter)
+    {
+        foreach (var player in playerList)
+        {
+            if (player.GetComponent<Player>() != activeCharacter)
+            {
+                player.GetComponent<Player>().isClickable = false;
+            }
+        }
+    }
+    
+    private void makeClickable()
+    {
+        foreach (var player in playerList)
+        {
+            player.GetComponent<Player>().isClickable = true;
+        }
+    }
+
 }

@@ -58,9 +58,9 @@ public class CharacterMenu : MonoBehaviour
 
         this.closeButton.onClick.AddListener(() =>
         {
-            if (!activeCharacter.moving)
+            if (!activeCharacter.isTurn)
             {
-                activeCharacter.setAfterTurn();
+                activeCharacter.charMenu.gameObject.SetActive(false);
             }
         });
         
