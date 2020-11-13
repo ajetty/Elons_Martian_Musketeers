@@ -616,7 +616,11 @@ MonoBehaviour:
   speed: 0
   yOffset: 0
   isTurn: 0
+  reachedDestination: 0
+  moving: 0
   gridPlane: {fileID: 0}
+  healthPoints: 0
+  DeathFX: {fileID: 100004, guid: 7867af58a6ec48846ae807eb4022fbaa, type: 3}
 --- !u!1 &8007155960041396194
 GameObject:
   m_ObjectHideFlags: 0

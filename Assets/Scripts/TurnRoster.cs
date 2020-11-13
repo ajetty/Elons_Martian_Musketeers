@@ -20,6 +20,11 @@ namespace Assets.Scripts
         public int enemyCount;
         private bool enemyTurn;
         private bool playerTurn;
+        public CameraSystem cameraSystem;
+        public bool win;
+        public bool lose;
+        public int enemyLiveCount;
+        public int playerLiveCount;
 
         //private int count = 0;
 
@@ -31,7 +36,12 @@ namespace Assets.Scripts
         // Update is called once per frame
         void Update()
         {
-            if (playerTurn)
+
+            if (playerLiveCount == 0)
+            {
+                lose = true;
+            }
+            else if (playerTurn)
             {
                 if (playerCount == 0)
                 {
@@ -43,9 +53,15 @@ namespace Assets.Scripts
                 }
             }
 
-            if (enemyTurn)
+            
+            if(enemyLiveCount == 0)
             {
-                if (listOfEnemies[turnIndex].GetComponent<CharacterMovement>().isTurn == false)
+                win = true;
+            }
+            else if (enemyTurn)
+            {
+                CharacterMovement currentCharacter = listOfEnemies[turnIndex].GetComponent<CharacterMovement>();
+                if (currentCharacter.isTurn == false || currentCharacter.isDead == true)
                 {
                     turnIndex = turnIndex + 1;
                     if (turnIndex < enemyCount)
@@ -60,13 +76,14 @@ namespace Assets.Scripts
                         foreach (GameObject player in listOfPlayers)
                         {
                             player.GetComponent<Player>().StartNewRound();
-                            playerCount = listOfPlayers.Count;
+                            playerCount = playerLiveCount;
                         }
 
                         playerTurn = true;
                     }
                 }
             }
+
         }
         
         public void SetTurnList(List<GameObject> listOfPlayers, List<GameObject> listOfEnemies)
@@ -75,7 +92,11 @@ namespace Assets.Scripts
             this.listOfPlayers = listOfPlayers;
             this.listOfEnemies = listOfEnemies;
             playerCount = listOfPlayers.Count;
+            playerLiveCount = playerCount;
             enemyCount = listOfEnemies.Count;
+            enemyLiveCount = enemyCount;
         }
+        
+        
     }
 }

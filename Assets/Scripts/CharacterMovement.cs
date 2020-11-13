@@ -16,6 +16,8 @@ namespace Assets.Scripts
         
         public bool reachedDestination;
 
+        public bool isDead;
+
         Vector3 velocity = new Vector3();
 
         //keeps track of distance between player/npc and target grid square (square we want to move to)
@@ -36,13 +38,6 @@ namespace Assets.Scripts
         public bool moving;
 
         public GridPlane gridPlane;
-
-        // protected void Init(int move, int speed)
-        // {
-        //     this.move = move;
-        //     this.speed = speed;
-        //     gridSquares = GameObject.FindGameObjectsWithTag("GridSquare");
-        // }
         
         protected virtual void Start()
         {
@@ -52,7 +47,7 @@ namespace Assets.Scripts
         }
 
         //breadth first search algorithm for grid square selectable grid squares
-        public virtual void FindSelectableTiles()
+        public virtual void FindSelectableTiles(bool attackMode)
         {
             if (currentGridSquare == null) return;
             Queue<GridSquare> process = new Queue<GridSquare>();
@@ -79,7 +74,7 @@ namespace Assets.Scripts
                     int z = pathCurrentSquare.zCoordinate;
                     foreach (GridSquare square in gridPlane.FindNeighbors(x, z))
                     {
-                        if (!squaresVisited.Contains(square))
+                        if ((square.occupant == null || attackMode) && !squaresVisited.Contains(square))
                         {
                             square.parent = pathCurrentSquare;
                             //square.visited = true;
@@ -142,7 +137,12 @@ namespace Assets.Scripts
         virtual public void SetGridSquare(GridSquare square)
         {
             transform.position = square.transform.position + Vector3.up * yOffset;
+            if (currentGridSquare)
+            {
+                currentGridSquare.occupant = null;
+            }
             currentGridSquare = square;
+            currentGridSquare.occupant = this;
         }
 
         public void RemoveSelectableGridSquares()
@@ -153,6 +153,7 @@ namespace Assets.Scripts
             }
 
             selectableGridSquares.Clear();
+            currentGridSquare.current = false;
         }
 
         //calculate distance between target and npc/player
@@ -170,13 +171,13 @@ namespace Assets.Scripts
         }
 
         //find the nearest target by game object tag using rays
-        public Transform FindNearestTarget(String targetTag)
+        public Player FindNearestTarget(String targetTag)
         {
             GameObject[] targets = GameObject.FindGameObjectsWithTag(targetTag);
 
             float closestDistance = Mathf.Infinity; //start with the largest number since we want the smallest
 
-            Transform nearest = null;
+            GameObject nearest = null;
 
             foreach (GameObject item in targets)
             {
@@ -185,12 +186,12 @@ namespace Assets.Scripts
                 if (currentDistance < closestDistance)
                 {
                     closestDistance = currentDistance;
-                    nearest = item.transform;
+                    nearest = item;
                 }
             }
 
-            Debug.Log("Calculated Target!: " + nearest.position);
-            return nearest;
+            //Debug.Log("Calculated Target!: " + nearest.transform.position);
+            return nearest.GetComponent<Player>();
         }
 
         //find a path to the target using A*

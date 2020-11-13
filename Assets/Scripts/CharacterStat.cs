@@ -79,7 +79,7 @@ public class CharacterStat {
     }
 
     public float calculateFinalValue() {
-        float final = 0;
+        float final = baseValue;
         foreach (StatModifier mod in this.statModifiers) {
             if (mod.isFlat) {
                 final += mod.value;

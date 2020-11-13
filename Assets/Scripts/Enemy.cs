@@ -1,48 +1,76 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Resources;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Timeline;
+using TMPro;
 using UnityEngine.EventSystems;
 
 namespace Assets.Scripts
 {
-    public class Enemy : CharacterMovement, IPointerEnterHandler, IPointerExitHandler
+    public class Enemy : CharacterMovement, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
     {
         //this game object has the tag of "Enemy"
-        
+
         private Animator anim;
         private CharacterController controller;
-        public GameObject gameMaster;
 
         private GridSquare moveTargetSquare;
 
-        public bool mouseOver;
+        public int healthPoints;
+
+        public GameObject DeathFX;
+
+        private float deathTime = Mathf.Infinity;
+        private float attackTime = Mathf.Infinity;
+
+        public GameObject gameMaster;
+
+        public GameObject hitFX;
+        public GameObject missFX;
+
+        public AudioClip hitSound;
+        public AudioClip missSound;
+
+        public AudioSource audioSource;
+
+        public CameraSystem cameraSystem;
+
+        public Canvas enemyMenu;
 
         public string eName;
         public CharacterStat health;
         public CharacterStat defense;
+        public CharacterStat resistance;
+        public CharacterStat agility;
+        public CharacterStat attack;
+
+        public Shader originalShader;
 
         // Start is called before the first frame update
         protected override void Start()
         {
             //Init(5, 2);
             base.Start();
+            System.Random ran = new System.Random();
             controller = GetComponent<CharacterController>();
             anim = gameObject.GetComponentInChildren<Animator>();
-            health = new CharacterStat(100);
-            defense = new CharacterStat(0);
-            mouseOver = false;
+            health = new CharacterStat(50);
+            defense = new CharacterStat(5);
+            resistance = new CharacterStat(5);
+            agility = new CharacterStat(UnityEngine.Random.Range(5, 11));
+            attack = new CharacterStat(UnityEngine.Random.Range(5, 11));
 
-            if (this.gameObject.name == "Enemy")
-            {
-                eName = "Enemy 1";
-            }
-            else
-            {
-                eName = "Enemy 2";
-            }
+            eName = name;
+
+            hideEnemyStatDisplay();
+
+            originalShader = gameObject.transform.GetChild(3).GetChild(0).GetComponent<SkinnedMeshRenderer>().material.shader;
+            attackTime = 0;
         }
 
         // Update is called once per frame
@@ -51,35 +79,98 @@ namespace Assets.Scripts
             //Debug.Log("Beginning: " + isTurn);
             if (isTurn)
             {
+                cameraSystem.SetCameraOrigin(gameObject.transform);
+
+                Player target = FindNearestTarget("Player");
+                moveTargetSquare = gridPlane.GetSquareAtCoord(Mathf.RoundToInt(target.transform.position.x),
+                    Mathf.RoundToInt(target.transform.position.z));
+
 
                 if (!moving)
                 {
-                    //FindSelectableTiles();
-                    //CheckMouse();
-                    //FindSelectableTiles();
-                    Transform target = FindNearestTarget("Player");
-                    moveTargetSquare = gridPlane.GetSquareAtCoord(Mathf.RoundToInt(target.transform.position.x), Mathf.RoundToInt(target.transform.position.z));
-                    // List<GridSquare> test = PathToTarget(gridSquare);
+                    if (Vector3.Distance(transform.position, target.transform.position) > agility.getValue())
+                    {
+                        MoveToGridSquare(moveTargetSquare);
+                    }
+                    else
+                    {
+                        attackTime += Time.deltaTime;
+                        Attack(target);
+                    }
 
-                    MoveToGridSquare(moveTargetSquare);
-                    
                 }
-                else
+
+                if (moving)
                 {
                     Move();
                 }
             }
 
-            if (mouseOver && Mouse.current.leftButton.wasPressedThisFrame && gameMaster.GetComponent<GameMaster>().attackButtonPressed)
+            if (health.getValue() <= 0.0f && isDead == false)
             {
-                gameMaster.GetComponent<GameMaster>().enemyToAttack = this;
+                Death();
+                deathTime = Time.time;
             }
 
-            if (mouseOver && Mouse.current.leftButton.wasPressedThisFrame && !gameMaster.GetComponent<GameMaster>().attackButtonPressed)
+            if (isDead && Time.time > deathTime + 0.5f)
             {
-                gameMaster.GetComponent<GameMaster>().enemyToDisplay = this;
-                gameMaster.GetComponent<GameMaster>().hideShowEnemyStatDisplay(this);
+                //Destroy(gameObject);
+                gameObject.SetActive(false);
+                hideEnemyStatDisplay();
+                gameMaster.GetComponent<TurnRoster>().enemyLiveCount--;
             }
+        }
+
+        private void Attack(Player target)
+        {
+           
+            //Debug.Log("CAMERA SYSTEM: " + cameraSystem.transform.position);
+            if (attackTime > 0.05f)
+            {
+                anim.SetInteger("AnimationPar", 2);
+
+                Debug.Log("AnimationPar: " + anim.GetInteger("AnimationPar"));
+
+                Debug.Log(target.name + " has been selected for attack.");
+
+                int missFactor = UnityEngine.Random.Range(1, 11);
+
+                if (missFactor < 3)
+                {
+                    Instantiate(missFX, transform.position, Quaternion.identity);
+                    audioSource.PlayOneShot(missSound);
+                }
+                else
+                {
+                    Vector3 hitPosition = target.transform.position + Vector3.up;
+                    hitPosition += Vector3.Normalize(Camera.main.transform.position - hitPosition) * 1;
+                    Instantiate(hitFX, hitPosition, Quaternion.identity);
+                    //Instantiate(hitFX, target.transform.position, Quaternion.identity);
+                    target.health.decrement(attack.getValue());
+                    Debug.Log(target.name + " has taken " + attack.getValue() + " damage.");
+                    //target.setHP(-10);
+                    audioSource.PlayOneShot(hitSound);
+                }
+
+
+                
+            }
+
+            if (attackTime > 0.08f)
+            {
+                anim.SetInteger("AnimationPar", 0);
+                attackTime = 0;
+                isTurn = false;
+            }
+
+        }
+
+        private void Death()
+        {
+            anim.SetBool("Dieing", true);
+            Instantiate(DeathFX, transform.position, Quaternion.identity);
+            isDead = true;
+            currentGridSquare.occupant = null;
         }
 
 
@@ -101,8 +192,12 @@ namespace Assets.Scripts
                         }
                     }
                 }
-                
             }
+        }
+
+        public void OnPointerClick(PointerEventData pointerEventData)
+        {
+            showEnemyStatDisplay();
         }
 
         public override void SetGridSquare(GridSquare square)
@@ -117,24 +212,21 @@ namespace Assets.Scripts
             isTurn = false;
         }
 
-        public override void FindSelectableTiles()
-        {
-            if (currentGridSquare)
-            {
-                currentGridSquare.current = true;
-            }
-            base.FindSelectableTiles();
-        }
-        
+        // public override void FindSelectableTiles()
+        // {
+        //     if (currentGridSquare)
+        //     {
+        //         currentGridSquare.current = true;
+        //     }
+        //
+        //     base.FindSelectableTiles();
+        // }
+
         public override void Move()
         {
             anim.SetInteger("AnimationPar", 1);
-
-            // foreach (var VARIABLE in path)
-            // {
-            //     Debug.Log("STACK: " + VARIABLE.xCoordinate + " " + VARIABLE.zCoordinate);
-            // }
             
+
 
             base.Move();
 
@@ -143,46 +235,66 @@ namespace Assets.Scripts
                 anim.SetInteger("AnimationPar", 0);
                 reachedDestination = false;
                 moveTargetSquare.target = false;
+
             }
         }
-        
+
         public override void MoveToGridSquare(GridSquare gridSquare)
         {
             path.Clear();
             gridSquare.target = true;
             moving = true;
-            
+
             List<GridSquare> AList = PathToTarget(gridSquare);
 
             AList.RemoveAt(0);
-            
-            
-            // foreach (var VARIABLE in AList)
-            // {
-            //     Debug.Log("ALIST: " + VARIABLE.xCoordinate + " " + VARIABLE.zCoordinate);
-            // }
+            int newLength = (int) Mathf.Min(AList.Count, agility.getValue());
+            AList = AList.GetRange(AList.Count - newLength, newLength);
 
             path = new Stack<GridSquare>(AList);
         }
 
-        public void OnPointerEnter(PointerEventData eventData)
+        public void updateEnemyStatDisplay()
         {
-            Debug.Log(gameObject.name + " mouse has entered.");
-            mouseOver = true;
+            TextMeshProUGUI statDisplay = enemyMenu.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+            if(statDisplay.gameObject.activeSelf)
+            {
+                statDisplay.text = statsToString();
+            }
         }
 
-        public void OnPointerExit(PointerEventData eventData)
+        public void hideEnemyStatDisplay()
         {
-            Debug.Log(gameObject.name + " mouse has exit.");
-            mouseOver = false;
+            enemyMenu.gameObject.SetActive(false);
+        }
+
+        public void showEnemyStatDisplay()
+        {
+            updateEnemyStatDisplay();
+            enemyMenu.gameObject.SetActive(true);
         }
 
         public string statsToString()
         {
-            string r = this.eName + "\n\n";
-            r += "HP  // " + this.health.getValue();
-            r += "\nDEF // " + this.defense.getValue();
+            string r = eName + "\n\n";
+            r += "HP  // " + health.getValue();
+            r += "\nATK // " + attack.getValue();
+            r += "\nDEF // " + defense.getValue();
+            r += "\nRES // " + resistance.getValue();
             return r;
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            gameObject.transform.GetChild(3).GetChild(0).GetComponent<SkinnedMeshRenderer>().material.shader =
+                Shader.Find("Legacy Shaders/Self-Illumin/Diffuse");
+            
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            gameObject.transform.GetChild(3).GetChild(0).GetComponent<SkinnedMeshRenderer>().material.shader =
+                originalShader;
         }
     }
 }
