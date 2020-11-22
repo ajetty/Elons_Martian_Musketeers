@@ -17,9 +17,13 @@ public class GameMaster : MonoBehaviour
     public GridPlane gridPlane;
     public TurnRoster turnRoster;
     public Player activeCharacter;
+    //public PlayerSkill activeSkill;
+
     public bool moveButtonPressed;
     public bool attackButtonPressed;
     public bool defendButtonPressed;
+    public bool skillButtonPressed;
+
     public CameraSystem cameraSystem;
     public GameObject winText;
     public GameObject loseText;
@@ -154,6 +158,21 @@ public class GameMaster : MonoBehaviour
                     Debug.Log("Defend button pressed.");
                 }
 
+                else if (skillButtonPressed)
+                {
+                    //activeCharacter.isTurn = true;
+                    activeCharacter.isTurn = true;
+                    makeUnclickable(activeCharacter);
+                    activeCharacter.RemoveSelectableGridSquares();
+                    activeCharacter.FindSelectableTiles(true);
+                    bool skillFired = activeCharacter.CheckMouse("skill");
+                    if (skillFired)
+                    {
+                        makeUnclickable(activeCharacter);
+                        endTurn();
+                    }
+                }
+
 
                 if (activeCharacter && activeCharacter.isTurn && activeCharacter.GetComponent<CharacterMovement>().reachedDestination)
                 {
@@ -169,6 +188,7 @@ public class GameMaster : MonoBehaviour
         turnRoster.playerCount--;
         moveButtonPressed = false;
         attackButtonPressed = false;
+        skillButtonPressed = false;
         activeCharacter.RemoveSelectableGridSquares();
         activeCharacter = null;
         makeClickable();

@@ -45,6 +45,7 @@ namespace Assets.Scripts
         public string eName;
         public CharacterStat health;
         public CharacterStat defense;
+        public CharacterStat resistance;
         public CharacterStat agility;
         public CharacterStat attack;
 
@@ -58,10 +59,11 @@ namespace Assets.Scripts
             System.Random ran = new System.Random();
             controller = GetComponent<CharacterController>();
             anim = gameObject.GetComponentInChildren<Animator>();
-            health = new CharacterStat(1);
-            defense = new CharacterStat(0);
+            health = new CharacterStat(50);
+            defense = new CharacterStat(5);
+            resistance = new CharacterStat(5);
             agility = new CharacterStat(UnityEngine.Random.Range(5, 11));
-            attack = new CharacterStat(UnityEngine.Random.Range(5, 10));
+            attack = new CharacterStat(UnityEngine.Random.Range(5, 11));
 
             eName = name;
 
@@ -255,7 +257,10 @@ namespace Assets.Scripts
         public void updateEnemyStatDisplay()
         {
             TextMeshProUGUI statDisplay = enemyMenu.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
-            statDisplay.text = statsToString();
+            if(statDisplay.gameObject.activeSelf)
+            {
+                statDisplay.text = statsToString();
+            }
         }
 
         public void hideEnemyStatDisplay()
@@ -273,7 +278,9 @@ namespace Assets.Scripts
         {
             string r = eName + "\n\n";
             r += "HP  // " + health.getValue();
+            r += "\nATK // " + attack.getValue();
             r += "\nDEF // " + defense.getValue();
+            r += "\nRES // " + resistance.getValue();
             return r;
         }
 

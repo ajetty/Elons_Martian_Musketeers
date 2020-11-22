@@ -11,10 +11,17 @@ public class CharacterMenu : MonoBehaviour
 {
     public GameMaster gameMaster;
     public Player activeCharacter;
+
     public Button moveButton;
     public Button attackButton;
+    public Button skillButton;
+    public Button skill1Button;
+    public Button skill2Button;
     public Button defendButton;
     public Button closeButton;
+
+    public bool skillsShowing;
+
     //public TMP_Text health;
     public TextMeshProUGUI statDisplay;
 
@@ -63,7 +70,32 @@ public class CharacterMenu : MonoBehaviour
                 activeCharacter.charMenu.gameObject.SetActive(false);
             }
         });
-        
+
+        this.skillButton.onClick.AddListener(() =>
+        {
+            if (skillsShowing)
+            {
+                hideSkillButtons();
+            }
+            else
+            {
+                showSkillButtons();
+            }
+        });
+
+        this.skill1Button.onClick.AddListener(() =>
+        {
+            //
+            activeCharacter.activeSkill = activeCharacter.skill1;
+            gameMaster.skillButtonPressed = true;
+        });
+
+        this.skill2Button.onClick.AddListener(() =>
+        {
+            //
+            activeCharacter.activeSkill = activeCharacter.skill2;
+            gameMaster.skillButtonPressed = true;
+        });
     }
 
     // Update is called once per frame
@@ -76,6 +108,29 @@ public class CharacterMenu : MonoBehaviour
     public void updateStatDisplay()
     {
         statDisplay.text = activeCharacter.statsToString();
+    }
+
+    public void updateSkillDisplay()
+    {
+        skill1Button.GetComponentInChildren<TMPro.TextMeshProUGUI>().SetText(activeCharacter.skill1.name);
+        skill2Button.GetComponentInChildren<TMPro.TextMeshProUGUI>().SetText(activeCharacter.skill2.name);
+    }
+
+    public void hideSkillButtons()
+    {
+        this.skill1Button.gameObject.SetActive(false);
+        this.skill2Button.gameObject.SetActive(false);
+        skillsShowing = false;
+    }
+
+    public void showSkillButtons()
+    {
+        this.skill1Button.gameObject.SetActive(true);
+        this.skill2Button.gameObject.SetActive(true);
+        updateSkillDisplay();
+        skillsShowing = true;
+
+
     }
 
 }
