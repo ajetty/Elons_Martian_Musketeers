@@ -53,49 +53,49 @@ public class CharacterMenu : MonoBehaviour
             }
         });
         
-        this.defendButton.onClick.AddListener(() =>
-        {
-            if (!activeCharacter.moving)
-            {
-                gameMaster.defendButtonPressed = true;
-                gameMaster.moveButtonPressed = false;
-                gameMaster.attackButtonPressed = false;
-            }
-        });
+        // this.defendButton.onClick.AddListener(() =>
+        // {
+        //     if (!activeCharacter.moving)
+        //     {
+        //         gameMaster.defendButtonPressed = true;
+        //         gameMaster.moveButtonPressed = false;
+        //         gameMaster.attackButtonPressed = false;
+        //     }
+        // });
 
-        this.closeButton.onClick.AddListener(() =>
-        {
-            if (!activeCharacter.isTurn)
-            {
-                activeCharacter.charMenu.gameObject.SetActive(false);
-            }
-        });
+        // this.closeButton.onClick.AddListener(() =>
+        // {
+        //     if (!activeCharacter.isTurn)
+        //     {
+        //         activeCharacter.charMenu.gameObject.SetActive(false);
+        //     }
+        // });
 
-        this.skillButton.onClick.AddListener(() =>
-        {
-            if (skillsShowing)
-            {
-                hideSkillButtons();
-            }
-            else
-            {
-                showSkillButtons();
-            }
-        });
+        // this.skillButton.onClick.AddListener(() =>
+        // {
+        //     if (skillsShowing)
+        //     {
+        //         hideSkillButtons();
+        //     }
+        //     else
+        //     {
+        //         showSkillButtons();
+        //     }
+        // });
 
-        this.skill1Button.onClick.AddListener(() =>
-        {
-            //
-            activeCharacter.activeSkill = activeCharacter.skill1;
-            gameMaster.skillButtonPressed = true;
-        });
-
-        this.skill2Button.onClick.AddListener(() =>
-        {
-            //
-            activeCharacter.activeSkill = activeCharacter.skill2;
-            gameMaster.skillButtonPressed = true;
-        });
+        // this.skill1Button.onClick.AddListener(() =>
+        // {
+        //     //
+        //     activeCharacter.activeSkill = activeCharacter.skill1;
+        //     gameMaster.skillButtonPressed = true;
+        // });
+        //
+        // this.skill2Button.onClick.AddListener(() =>
+        // {
+        //     //
+        //     activeCharacter.activeSkill = activeCharacter.skill2;
+        //     gameMaster.skillButtonPressed = true;
+        // });
     }
 
     // Update is called once per frame
@@ -110,28 +110,28 @@ public class CharacterMenu : MonoBehaviour
         statDisplay.text = activeCharacter.statsToString();
     }
 
-    public void updateSkillDisplay()
-    {
-        skill1Button.GetComponentInChildren<TMPro.TextMeshProUGUI>().SetText(activeCharacter.skill1.name);
-        skill2Button.GetComponentInChildren<TMPro.TextMeshProUGUI>().SetText(activeCharacter.skill2.name);
-    }
+    // public void updateSkillDisplay()
+    // {
+    //     skill1Button.GetComponentInChildren<TMPro.TextMeshProUGUI>().SetText(activeCharacter.skill1.name);
+    //     skill2Button.GetComponentInChildren<TMPro.TextMeshProUGUI>().SetText(activeCharacter.skill2.name);
+    // }
 
-    public void hideSkillButtons()
-    {
-        this.skill1Button.gameObject.SetActive(false);
-        this.skill2Button.gameObject.SetActive(false);
-        skillsShowing = false;
-    }
+    // public void hideSkillButtons()
+    // {
+    //     this.skill1Button.gameObject.SetActive(false);
+    //     this.skill2Button.gameObject.SetActive(false);
+    //     skillsShowing = false;
+    // }
 
-    public void showSkillButtons()
-    {
-        this.skill1Button.gameObject.SetActive(true);
-        this.skill2Button.gameObject.SetActive(true);
-        updateSkillDisplay();
-        skillsShowing = true;
-
-
-    }
+    // public void showSkillButtons()
+    // {
+    //     this.skill1Button.gameObject.SetActive(true);
+    //     this.skill2Button.gameObject.SetActive(true);
+    //     updateSkillDisplay();
+    //     skillsShowing = true;
+    //
+    //
+    // }
 
 }
 

@@ -249,7 +249,7 @@ public class Player : CharacterMovement, IPointerEnterHandler, IPointerExitHandl
         gameMaster.GetComponent<GameMaster>().setActiveCharacter(this);
         charMenu.GetComponent<CharacterMenu>().statDisplay.text = this.statsToString();
         charMenu.SetActive(true);
-        charMenu.GetComponent<CharacterMenu>().hideSkillButtons();
+        //charMenu.GetComponent<CharacterMenu>().hideSkillButtons();
     }
 
     public void setAfterTurn()
